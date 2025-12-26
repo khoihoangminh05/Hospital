@@ -1,0 +1,9 @@
+# requirements.txt
+flask
+flask-pymongo
+python-dotenv
+bcrypt
+flask-jwt-extended
+flask-cors 
+flask-bcrypt 
+pyjwt

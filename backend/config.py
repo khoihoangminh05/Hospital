@@ -1,0 +1,3 @@
+class Config:
+    MONGO_URI = "mongodb+srv://doanduonghung2005lhp_db_user:Huyduong05@cluster0.u2b6xzt.mongodb.net/hospital_db?retryWrites=true&w=majority"
+    JWT_SECRET = "jwt-secret-key"
