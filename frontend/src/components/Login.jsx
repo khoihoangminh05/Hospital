@@ -119,17 +119,7 @@ export function Login({ setCurrentPage }) {
               </p>
             </div>
 
-            <div className="mt-6 p-4 bg-[#F5F5F5] rounded-lg">
-              <p className="text-sm mb-2">Tài khoản demo:</p>
-              <div className="space-y-2 text-sm">
-                <p className="text-muted-foreground">
-                  <strong>Admin:</strong> admin@ankhang.vn / admin123
-                </p>
-                <p className="text-muted-foreground">
-                  <strong>User:</strong> user@ankhang.vn / user123
-                </p>
-              </div>
-            </div>
+            
           </CardContent>
         </Card>
       </div>

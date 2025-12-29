@@ -26,6 +26,9 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import api from '@/config/axios';
+import { AppointmentManager } from './dashboard/AppointmentManager';
+import { DoctorManager } from './dashboard/DoctorManager';
+import { UserManager } from './dashboard/UserManager';
 
 export function AdminDashboard({ setCurrentPage }) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -112,24 +115,6 @@ export function AdminDashboard({ setCurrentPage }) {
     { name: 'Tim mạch', patients: 245 }, { name: 'Nội khoa', patients: 189 },
     { name: 'Ngoại khoa', patients: 167 }, { name: 'Nhi khoa', patients: 143 },
   ];
-  const appointmentData = [
-    { day: 'T2', appointments: 85 }, { day: 'T3', appointments: 92 },
-    { day: 'T4', appointments: 78 }, { day: 'T5', appointments: 95 },
-  ];
-
-  // Helper hiển thị màu badge
-  const getStatusColor = (status) => {
-    const s = status ? status.toLowerCase() : '';
-    if (s === 'active' || s === 'hoạt động') return 'bg-green-100 text-green-700 border-green-200';
-    if (s === 'pending' || s === 'chờ duyệt') return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    return 'bg-gray-100 text-gray-700 border-gray-200';
-  };
-
-  // Lọc user theo tìm kiếm
-  const filteredUsers = usersList.filter(u => 
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="bg-white min-h-screen">
@@ -245,68 +230,15 @@ export function AdminDashboard({ setCurrentPage }) {
               </TabsContent>
 
               {/* TAB USERS */}
-              <TabsContent value="users">
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                       <CardTitle>Danh sách người dùng</CardTitle>
-                       <div className="flex gap-2">
-                          <Input 
-                             placeholder="Tìm kiếm..." 
-                             value={searchTerm} 
-                             onChange={e => setSearchTerm(e.target.value)} 
-                             className="w-64"
-                          />
-                          <Button><Plus className="w-4 h-4 mr-2" /> Thêm mới</Button>
-                       </div>
-                    </CardHeader>
-                    <CardContent>
-                       <Table>
-                          <TableHeader>
-                             <TableRow>
-                                <TableHead>Tên</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Vai trò</TableHead>
-                                <TableHead>Trạng thái</TableHead>
-                                <TableHead className="text-right">Hành động</TableHead>
-                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                             {loading ? (
-                                <TableRow><TableCell colSpan={5} className="text-center py-4">Đang tải...</TableCell></TableRow>
-                             ) : filteredUsers.map(user => (
-                                <TableRow key={user._id}>
-                                   <TableCell className="font-medium">{user.name}</TableCell>
-                                   <TableCell>{user.email}</TableCell>
-                                   <TableCell>
-                                      <Badge variant="outline" className={user.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'}>
-                                         {user.role}
-                                      </Badge>
-                                   </TableCell>
-                                   <TableCell>
-                                      <Badge className={getStatusColor(user.status)}>{user.status || 'Active'}</Badge>
-                                   </TableCell>
-                                   <TableCell className="text-right">
-                                      <Button variant="ghost" size="sm"><Edit className="w-4 h-4" /></Button>
-                                      <Button variant="ghost" size="sm" onClick={() => handleDeleteClick('user', user._id)}>
-                                         <Trash2 className="w-4 h-4 text-red-500" />
-                                      </Button>
-                                   </TableCell>
-                                </TableRow>
-                             ))}
-                          </TableBody>
-                       </Table>
-                    </CardContent>
-                 </Card>
-              </TabsContent>
 
               {/* Các Tabs khác (Doctors, News...) làm tương tự cấu trúc User Tab */}
-              <TabsContent value="doctors"><div className="p-10 text-center text-gray-500">Chức năng quản lý bác sĩ đang phát triển...</div></TabsContent>
-              <TabsContent value="appointments"><div className="p-10 text-center text-gray-500">Chức năng quản lý lịch khám đang phát triển...</div></TabsContent>
+              <TabsContent value="users"><div className="p-10 text-center text-gray-500"><UserManager/> </div></TabsContent>
+              <TabsContent value="doctors"><div className="p-10 text-center text-gray-500"><DoctorManager/> </div></TabsContent>
+              <TabsContent value="appointments"><div className="p-10 text-center text-gray-500"><AppointmentManager/> </div></TabsContent>
               <TabsContent value="news"><div className="p-10 text-center text-gray-500">Chức năng quản lý tin tức đang phát triển...</div></TabsContent>
            </Tabs>
         </div>
       </section>
-
       {/* DIALOG XÓA */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
          <DialogContent>

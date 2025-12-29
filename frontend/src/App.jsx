@@ -11,6 +11,10 @@ import { Toaster } from "sonner";
 import { Hero } from "./components/Hero";
 import { Appointment } from "./components/Appointment";
 import { AdminDashboard } from "./components/AdminDashboard";
+import { Doctors } from "./components/Doctors";
+import { Departments } from "./components/Departments";
+import { About } from "./components/About";
+import { News } from "./components/News";
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -43,12 +47,20 @@ function AppContent() {
     switch (currentPage) {
       case "home":
         return <Hero setCurrentPage={setCurrentPage} />;
+      case 'about':
+        return <About setCurrentPage={setCurrentPage} />;
       case "login":
         return <Login setCurrentPage={setCurrentPage} />;
       case "register":
         return <Register setCurrentPage={setCurrentPage} />;
+      case 'departments':
+        return <Departments setCurrentPage={setCurrentPage} />;  
+      case 'doctors':
+        return <Doctors setCurrentPage={setCurrentPage} />;
       case 'appointment':
         return <Appointment setCurrentPage={setCurrentPage} />;
+      case 'news':
+        return <News setCurrentPage={setCurrentPage} />;
 
       case 'admin-dashboard':
         return user?.role === 'admin' ? <AdminDashboard setCurrentPage={setCurrentPage} /> : <Hero setCurrentPage={setCurrentPage} />;

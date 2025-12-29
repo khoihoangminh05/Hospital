@@ -55,7 +55,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
 
-    delete api.defaults.headers.common["Authorization"];
   };
 
   return (

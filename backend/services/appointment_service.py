@@ -1,6 +1,7 @@
 from extensions import mongo
 from models.appointment_model import Appointment
 from bson import ObjectId
+from datetime import datetime
 
 def create_appointment(data, current_user_id):
     # Dữ liệu từ FE gửi lên: doctor_id, date_time, description
@@ -46,3 +47,57 @@ def get_appointments_by_role(user):
         appt['doctor_id'] = str(appt['doctor_id'])
         
     return appointments
+
+def get_all_appointments_for_admin():
+    # Lấy toàn bộ lịch hẹn, sắp xếp mới nhất trước
+    appointments = list(mongo.db.appointments.find().sort("created_at", -1))
+    
+    results = []
+    for appt in appointments:
+        # Join thủ công để lấy tên Bệnh nhân và Bác sĩ (nếu lưu ID)
+        patient = mongo.db.users.find_one({"_id": appt.get('patient_id')})
+        doctor = mongo.db.users.find_one({"_id": appt.get('doctor_id')})
+        
+        # Tách date_time thành date và time để Frontend dễ hiển thị
+        dt_obj = datetime.fromisoformat(appt['date_time']) if isinstance(appt['date_time'], str) else appt['date_time']
+        
+        results.append({
+            "id": str(appt['_id']), # Map _id -> id
+            "patientName": patient['name'] if patient else "Khách vãng lai",
+            "phone": patient.get('phone', '') if patient else "",
+            "email": patient.get('email', '') if patient else "",
+            "doctorName": doctor['name'] if doctor else "Chưa phân công",
+            "department": appt.get('department', 'Tổng quát'), # Cần lưu field này khi tạo
+            "date": dt_obj.strftime('%Y-%m-%d'),
+            "time": dt_obj.strftime('%H:%M'),
+            "status": appt.get('status', 'Chờ xác nhận')
+        })
+    return results
+
+def update_appointment(appt_id, data):
+    try:
+        # Logic update: Admin có thể sửa trạng thái, ngày giờ...
+        update_data = {
+            "status": data.get('status'),
+            # Nếu sửa ngày giờ thì cần gộp lại thành ISO
+            # "date_time": ... (xử lý nếu cần)
+        }
+        
+        # Nếu có sửa ngày/giờ từ frontend gửi lên
+        if data.get('date') and data.get('time'):
+             update_data['date_time'] = f"{data['date']}T{data['time']}:00"
+
+        mongo.db.appointments.update_one(
+            {"_id": ObjectId(appt_id)},
+            {"$set": update_data}
+        )
+        return True, "Cập nhật thành công"
+    except Exception as e:
+        return False, str(e)
+
+def delete_appointment(appt_id):
+    try:
+        mongo.db.appointments.delete_one({"_id": ObjectId(appt_id)})
+        return True, "Xóa thành công"
+    except Exception as e:
+        return False, str(e)

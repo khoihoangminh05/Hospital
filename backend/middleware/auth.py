@@ -15,7 +15,7 @@ def token_required(f):
             if auth_header.startswith('Bearer '):
                 try:
                     token = auth_header.split(" ")[1]
-                    print(token)
+                    # print(token)    
                 except IndexError:
                     return jsonify({'message': 'Token format invalid!'}), 401
 
