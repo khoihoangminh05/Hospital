@@ -131,7 +131,7 @@ export function Appointment({ setCurrentPage }) {
     setIsSubmitting(true);
 
     try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
         if (!token) {
             setApiError("Bạn cần đăng nhập để đặt lịch!");
             setIsSubmitting(false);
