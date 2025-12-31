@@ -26,9 +26,9 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import api from '@/config/axios';
-import { AppointmentManager } from './dashboard/AppointmentManager';
-import { DoctorManager } from './dashboard/DoctorManager';
-import { UserManager } from './dashboard/UserManager';
+import { AppointmentManager } from './dashboardAdmin/AppointmentManager';
+import { DoctorManager } from './dashboardAdmin/DoctorManager';
+import { UserManager } from './dashboardAdmin/UserManager';
 
 export function AdminDashboard({ setCurrentPage }) {
   const [activeTab, setActiveTab] = useState('overview');

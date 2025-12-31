@@ -26,7 +26,6 @@ export function Navbar({ currentPage, setCurrentPage }) {
     { id: "doctors", label: "Bác sĩ" },
     { id: "appointment", label: "Đặt lịch khám" },
     { id: "news", label: "Tin tức" },
-    { id: "contact", label: "Liên hệ" },
   ];
 
   const userMenuItems = user

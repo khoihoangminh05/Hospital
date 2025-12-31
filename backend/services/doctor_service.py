@@ -93,3 +93,46 @@ def delete_doctor(doctor_id):
         return True, "Đã xóa bác sĩ"
     except Exception as e:
         return False, str(e)
+    
+def get_doctor_profile_service(user_id):
+    try:
+        user = mongo.db.users.find_one({"_id": ObjectId(user_id), "role": "doctor"})
+        if not user:
+            return None, "Không tìm thấy bác sĩ"
+            
+        # Format dữ liệu trả về Frontend
+        profile = {
+            "name": user.get('name', ''),
+            "specialty": user.get('specialty', ''),
+            "department": user.get('specialty', ''), # Tạm dùng specialty làm department nếu chưa có
+            "hospital": user.get('hospital', 'Bệnh viện Tự Nhiên'),
+            "email": user.get('email', ''),
+            "phone": user.get('phone', ''),
+            "avatar": user.get('avatar', ''),
+            "education": user.get('education', '').split('\n') if user.get('education') else [],
+            "certifications": user.get('certifications', []),
+            "languages": user.get('languages', []),
+            "achievements": user.get('achievements', [])
+        }
+        return profile, "Thành công"
+    except Exception as e:
+        return None, str(e)
+
+def update_doctor_profile_service(user_id, data):
+    try:
+        update_data = {
+            "hospital": data.get('hospital'),
+            "certifications": data.get('certifications'), # Mảng
+            "languages": data.get('languages'),           # Mảng
+            "achievements": data.get('achievements'),     # Mảng
+            "education": data.get('education'),           # String hoặc Mảng tuỳ thiết kế
+            "phone": data.get('phone')
+        }
+        
+        mongo.db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": update_data}
+        )
+        return True, "Cập nhật hồ sơ thành công"
+    except Exception as e:
+        return False, str(e)

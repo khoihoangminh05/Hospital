@@ -1,434 +1,316 @@
-import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { 
-  Users, 
-  Calendar, 
-  FileText, 
-  Activity, 
-  Clock,
-  Search,
-  Plus,
-  AlertCircle,
-  CheckCircle2,
-  TrendingUp,
-  Stethoscope,
-  Pill,
-  ClipboardList,
-  TestTube2,
-  UserPlus,
-  Menu,
-  X,
-  LogOut,
-  User,
-  Bell,
-  Settings,
-  Hospital
-} from 'lucide-react';
-import { Input } from './ui/input';
-import { Avatar, AvatarFallback } from './ui/avatar';
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from './ui/table';
+import React, { useState, useRef, useEffect } from 'react';
+import { Calendar, Clock, Check, X, CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import api from '@/config/axios';
 
+// Helper tạo lịch tháng
+const generateCalendarDays = (year, month) => {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startingDayOfWeek = firstDay.getDay();
+  const days = [];
+  
+  // Slot trống đầu tháng
+  for (let i = 0; i < startingDayOfWeek; i++) {
+    days.push(null);
+  }
+  // Các ngày trong tháng
+  for (let day = 1; day <= daysInMonth; day++) {
+    days.push(new Date(year, month, day));
+  }
+  return days;
+};
 
-export function DoctorDashboard({ setCurrentPage }  ) {
-  const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+export function DoctorDashboard() {
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  
+  // State dữ liệu
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const appointmentListRef = useRef(null);
 
-  const handleLogout = () => {
-    logout();
-    setCurrentPage('home');
+  // --- 1. GỌI API LẤY DANH SÁCH ---
+  const fetchAppointments = async () => {
+    try {
+        setLoading(true);
+        // Gọi API backend vừa sửa
+        const res = await api.get('/api/appointments/my-list');
+        setAppointments(res.data);
+    } catch (error) {
+        console.error("Lỗi tải lịch:", error);
+        toast.error("Không thể tải danh sách lịch khám");
+    } finally {
+        setLoading(false);
+    }
   };
 
-  // Mock data
-  const todayStats = {
-    totalPatients: 12,
-    appointments: 8,
-    completed: 5,
-    pending: 3
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  // --- 2. XỬ LÝ HÀNH ĐỘNG ---
+  const handleConfirm = async (id) => {
+    try {
+        await api.put(`/api/appointments/doctor/confirm/${id}`);
+        toast.success("Đã xác nhận lịch hẹn");
+        // Update state local để UI mượt mà
+        setAppointments(prev => prev.map(a => a.id === id ? {...a, status: 'confirmed'} : a));
+    } catch (error) {
+        toast.error("Lỗi xác nhận");
+    }
   };
 
-  const todayAppointments = [
-    { id: '1', time: '08:00', name: 'Nguyễn Văn A', reason: 'Khám tổng quát', status: 'completed' },
-    { id: '2', time: '09:00', name: 'Trần Thị B', reason: 'Tái khám', status: 'completed' },
-    { id: '3', time: '10:30', name: 'Lê Văn C', reason: 'Đau bụng', status: 'pending' },
-    { id: '4', time: '14:00', name: 'Phạm Thị D', reason: 'Khám định kỳ', status: 'pending' },
-    { id: '5', time: '15:30', name: 'Hoàng Văn E', reason: 'Sốt cao', status: 'pending' },
-  ];
+  const handleComplete = async (id) => {
+    try {
+        await api.put(`/api/appointments/doctor/complete/${id}`);
+        toast.success("Đã hoàn thành khám bệnh");
+        setAppointments(prev => prev.map(a => a.id === id ? {...a, status: 'completed'} : a));
+    } catch (error) {
+        toast.error("Lỗi cập nhật");
+    }
+  };
 
-  const patients = [
-    { id: '1', name: 'Nguyễn Văn A', age: 45, diagnosis: 'Cao huyết áp', room: 'P201', status: 'Đang điều trị' },
-    { id: '2', name: 'Trần Thị B', age: 32, diagnosis: 'Viêm họng', room: 'P202', status: 'Ổn định' },
-    { id: '3', name: 'Lê Văn C', age: 58, diagnosis: 'Đái tháo đường', room: 'P203', status: 'Cần theo dõi' },
-    { id: '4', name: 'Phạm Thị D', age: 67, diagnosis: 'Tim mạch', room: 'P204', status: 'Đang điều trị' },
-  ];
+  const handleCancel = async (id) => {
+    if(!confirm("Bạn có chắc muốn hủy lịch này?")) return;
+    try {
+        // Tùy logic bạn dùng API delete hay update status 'cancelled'
+        await api.delete(`/api/appointments/${id}`); 
+        toast.success("Đã hủy lịch hẹn");
+        setAppointments(prev => prev.filter(a => a.id !== id));
+    } catch (error) {
+        toast.error("Lỗi hủy lịch");
+    }
+  };
 
-  const notifications = [
-    { id: '1', type: 'test', message: 'Kết quả xét nghiệm máu - Nguyễn Văn A', time: '10 phút trước', unread: true },
-    { id: '2', type: 'admission', message: 'Bệnh nhân mới nhập viện - Khoa Nội', time: '30 phút trước', unread: true },
-    { id: '3', type: 'appointment', message: 'Lịch hẹn mới được đặt - 15:30', time: '1 giờ trước', unread: false },
-  ];
+  // --- 3. LOGIC LỊCH & FORMAT ---
+  
+  // Format Date -> String (YYYY-MM-DD) để so sánh với dữ liệu backend
+  const formatDateToString = (date) => {
+    if (!date) return '';
+    // Lưu ý: toISOString() chuyển về UTC, cẩn thận lệch múi giờ. 
+    // Cách an toàn lấy YYYY-MM-DD theo giờ địa phương:
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset*60*1000));
+    return localDate.toISOString().split('T')[0];
+  };
+
+  const selectedDateStr = formatDateToString(selectedDate);
+  const todayStr = formatDateToString(today);
+
+  // Lọc lịch theo ngày đang chọn trên lịch
+  const selectedDateAppointments = appointments.filter(apt => apt.date === selectedDateStr);
+  
+  // Lọc lịch hôm nay để hiển thị thông báo
+  const todayAppointments = appointments.filter(apt => apt.date === todayStr);
+  const pendingCount = todayAppointments.filter(apt => apt.status === 'pending').length;
+  const confirmedCount = todayAppointments.filter(apt => apt.status === 'confirmed').length;
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(currentYear - 1); }
+    else { setCurrentMonth(currentMonth - 1); }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(currentYear + 1); }
+    else { setCurrentMonth(currentMonth + 1); }
+  };
+
+  const getAppointmentCountForDate = (date) => {
+    if (!date) return 0;
+    return appointments.filter(apt => apt.date === formatDateToString(date)).length;
+  };
+
+  const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+  
+  // Màu avatar ngẫu nhiên theo tên
+  const getAvatarColor = (initials) => {
+    const colors = ['from-sky-400 to-sky-600', 'from-purple-400 to-purple-600', 'from-emerald-400 to-emerald-600', 'from-amber-400 to-amber-600', 'from-rose-400 to-rose-600'];
+    const charCode = initials ? initials.charCodeAt(0) : 0;
+    return colors[charCode % colors.length];
+  };
+
+  // Loading Screen
+  if (loading) {
+      return (
+        <div className="flex h-[50vh] items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      );
+  }
 
   return (
-    <div className="flex h-screen bg-[#F2F7FB]">
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-[#0C4A6E] to-[#1A73E8] text-white transition-all duration-300 flex flex-col`}>
-        <div className="p-4 flex items-center justify-between border-b border-white/20">
-          {sidebarOpen && (
-            <div className="flex items-center gap-2">
-              <Hospital className="w-8 h-8" />
-              <div>
-                <h2 className="text-sm">Bệnh viện Tự Nhiên</h2>
-              </div>
-            </div>
-          )}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-          >
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              activeTab === 'overview' ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10'
-            }`}
-          >
-            <Activity className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span>Tổng quan</span>}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('patients')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              activeTab === 'patients' ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10'
-            }`}
-          >
-            <Users className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span>Bệnh nhân</span>}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('appointments')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              activeTab === 'appointments' ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10'
-            }`}
-          >
-            <Calendar className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span>Lịch khám</span>}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('prescriptions')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              activeTab === 'prescriptions' ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10'
-            }`}
-          >
-            <Pill className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span>Kê đơn thuốc</span>}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('tests')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              activeTab === 'tests' ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10'
-            }`}
-          >
-            <TestTube2 className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span>Xét nghiệm</span>}
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-white/20">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all text-red-200 hover:text-white"
-          >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span>Đăng xuất</span>}
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-[#0C4A6E] mb-1">Dashboard Bác sĩ</h1>
-              <p className="text-sm text-muted-foreground">
-                Chào mừng trở lại, {user?.name}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <Bell className="w-5 h-5 text-gray-600" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-
-              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-                <Avatar>
-                  <AvatarFallback className="bg-[#1A73E8] text-white">
-                    {user?.name?.charAt(0) || 'BS'}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.specialty}</p>
-                </div>
-              </div>
-            </div>
+    <div className="max-w-[1600px] mx-auto px-8 pb-8">
+      
+      {/* Banner Thống kê nhanh */}
+      <div className="mb-8 bg-gradient-to-r from-sky-500 to-sky-600 rounded-2xl p-6 text-white shadow-lg">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+            <Calendar className="w-6 h-6" />
           </div>
-        </header>
+          <div className="flex-1">
+            <h2 className="text-xl mb-1 font-semibold">
+              {todayAppointments.length > 0 
+                ? `Hôm nay bạn có ${todayAppointments.length} lịch hẹn`
+                : 'Hôm nay bạn chưa có lịch hẹn nào'
+              }
+            </h2>
+            <p className="text-sky-100 text-sm">
+              {pendingCount > 0 && `${pendingCount} chờ xác nhận • `}
+              {confirmedCount > 0 && `${confirmedCount} đã xác nhận`}
+            </p>
+          </div>
+        </div>
+      </div>
 
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'overview' && (
-            <div className="space-y-6 animate-fade-in">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="border-l-4 border-l-blue-500">
-                  <CardHeader className="pb-3">
-                    <CardDescription>Bệnh nhân hôm nay</CardDescription>
-                    <CardTitle className="text-[#0C4A6E]">{todayStats.totalPatients}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 text-sm text-green-600">
-                      <TrendingUp className="w-4 h-4" />
-                      <span>+2 so với hôm qua</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-green-500">
-                  <CardHeader className="pb-3">
-                    <CardDescription>Lịch hẹn</CardDescription>
-                    <CardTitle className="text-[#0C4A6E]">{todayStats.appointments}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 text-sm text-blue-600">
-                      <Calendar className="w-4 h-4" />
-                      <span>{todayStats.completed} đã hoàn thành</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-yellow-500">
-                  <CardHeader className="pb-3">
-                    <CardDescription>Chờ khám</CardDescription>
-                    <CardTitle className="text-[#0C4A6E]">{todayStats.pending}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 text-sm text-yellow-600">
-                      <Clock className="w-4 h-4" />
-                      <span>Cần xử lý</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-purple-500">
-                  <CardHeader className="pb-3">
-                    <CardDescription>Đang điều trị</CardDescription>
-                    <CardTitle className="text-[#0C4A6E]">24</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 text-sm text-purple-600">
-                      <Users className="w-4 h-4" />
-                      <span>Bệnh nhân nội trú</span>
-                    </div>
-                  </CardContent>
-                </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* CỘT TRÁI: Danh sách lịch hẹn */}
+        <div className="lg:col-span-8">
+          <div ref={appointmentListRef} className="scroll-mt-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl text-slate-900 font-bold">
+                {selectedDateStr === todayStr ? 'Hôm nay' : `Ngày ${selectedDate.getDate()} tháng ${selectedDate.getMonth()+1}`}
+              </h2>
+              <div className="text-sm text-slate-500 font-medium bg-slate-100 px-3 py-1 rounded-full">
+                {selectedDateAppointments.length} lịch hẹn
               </div>
-
-              {/* Today's Schedule & Notifications */}
-              <div className="grid lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="text-[#0C4A6E] flex items-center gap-2">
-                      <Calendar className="w-5 h-5" />
-                      Lịch khám hôm nay
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {todayAppointments.map((apt) => (
-                        <div
-                          key={apt.id}
-                          className="flex items-center gap-4 p-4 bg-[#F2F7FB] rounded-lg hover:shadow-md transition-shadow"
-                        >
-                          <div className="flex-shrink-0 w-16 text-center">
-                            <p className="text-sm text-[#1A73E8]">{apt.time}</p>
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-[#0C4A6E]">{apt.name}</p>
-                            <p className="text-sm text-muted-foreground">{apt.reason}</p>
-                          </div>
-                          <Badge
-                            variant={apt.status === 'completed' ? 'default' : 'secondary'}
-                            className={apt.status === 'completed' ? 'bg-green-100 text-green-700' : ''}
-                          >
-                            {apt.status === 'completed' ? 'Hoàn thành' : 'Chờ khám'}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-[#0C4A6E] flex items-center gap-2">
-                      <Bell className="w-5 h-5" />
-                      Thông báo
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {notifications.map((notif) => (
-                        <div
-                          key={notif.id}
-                          className={`p-3 rounded-lg border ${
-                            notif.unread ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
-                          }`}
-                        >
-                          <p className="text-sm text-[#0C4A6E] mb-1">{notif.message}</p>
-                          <p className="text-xs text-muted-foreground">{notif.time}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Active Patients */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-[#0C4A6E] flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Bệnh nhân đang điều trị
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Họ tên</TableHead>
-                        <TableHead>Tuổi</TableHead>
-                        <TableHead>Chẩn đoán</TableHead>
-                        <TableHead>Phòng</TableHead>
-                        <TableHead>Tình trạng</TableHead>
-                        <TableHead>Thao tác</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {patients.map((patient) => (
-                        <TableRow key={patient.id}>
-                          <TableCell>{patient.name}</TableCell>
-                          <TableCell>{patient.age}</TableCell>
-                          <TableCell>{patient.diagnosis}</TableCell>
-                          <TableCell>{patient.room}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{patient.status}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="sm" className="text-[#1A73E8]">
-                              Xem hồ sơ
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
             </div>
-          )}
 
-          {activeTab === 'patients' && (
-            <div className="space-y-6 animate-fade-in">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[#0C4A6E]">Quản lý bệnh nhân</h2>
-                <Button className="bg-[#1A73E8]">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Thêm bệnh nhân
-                </Button>
+            {selectedDateAppointments.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center shadow-sm">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="w-8 h-8 text-slate-400" />
+                </div>
+                <p className="text-slate-500">Không có lịch hẹn nào vào ngày này</p>
               </div>
+            ) : (
+              <div className="space-y-4">
+                {selectedDateAppointments.map((appointment) => (
+                  <div key={appointment.id} className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300">
+                    <div className="flex items-start md:items-center gap-5 flex-col md:flex-row">
+                      
+                      <div className="flex items-center gap-5 flex-1 w-full">
+                        {/* Avatar */}
+                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${getAvatarColor(appointment.patientInitials)} flex items-center justify-center flex-shrink-0 text-white text-lg font-bold shadow-sm`}>
+                            {appointment.patientInitials}
+                        </div>
 
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input
-                        placeholder="Tìm kiếm bệnh nhân..."
-                        className="pl-10"
-                      />
+                        {/* Thông tin bệnh nhân */}
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-slate-900 font-bold text-lg mb-1">{appointment.patientName}</h3>
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                            <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                                <Clock className="w-4 h-4 text-blue-500" />
+                                <span className="font-semibold text-slate-700">{appointment.time}</span>
+                            </div>
+                            {appointment.reason && (
+                                <span className="text-slate-500 truncate max-w-[250px]" title={appointment.reason}>
+                                • {appointment.reason}
+                                </span>
+                            )}
+                            </div>
+                        </div>
+                      </div>
+
+                      {/* Nút thao tác */}
+                      <div className="flex items-center gap-2 w-full md:w-auto justify-end mt-2 md:mt-0">
+                        {appointment.status === 'pending' && (
+                          <>
+                            <button onClick={() => handleConfirm(appointment.id)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-medium text-sm shadow-sm">
+                              <Check className="w-4 h-4" /> Xác nhận
+                            </button>
+                            <button onClick={() => handleCancel(appointment.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all border border-red-100 hover:border-red-200">
+                              <X className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
+                        
+                        {appointment.status === 'confirmed' && (
+                          <>
+                            <button onClick={() => handleComplete(appointment.id)} className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-all font-medium text-sm shadow-sm">
+                              <CheckCircle2 className="w-4 h-4" /> Hoàn thành
+                            </button>
+                            <button onClick={() => handleCancel(appointment.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100">
+                              <X className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
+                        
+                        {appointment.status === 'completed' && (
+                          <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium text-sm border border-slate-200">
+                            <CheckCircle2 className="w-4 h-4 text-green-600" /> Đã khám xong
+                          </div>
+                        )}
+                      </div>
+
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-center py-8">
-                    Chức năng đang phát triển
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
-          {activeTab === 'appointments' && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-[#0C4A6E]">Quản lý lịch khám</h2>
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-muted-foreground text-center py-8">
-                    Chức năng đang phát triển
-                  </p>
-                </CardContent>
-              </Card>
+        {/* CỘT PHẢI: Lịch (Calendar Widget) */}
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sticky top-24 shadow-sm">
+            {/* Header Lịch */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">{monthNames[currentMonth]}</h3>
+                <p className="text-sm text-slate-500">Năm {currentYear}</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><ChevronLeft className="w-5 h-5 text-slate-600"/></button>
+                <button onClick={handleNextMonth} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><ChevronRight className="w-5 h-5 text-slate-600"/></button>
+              </div>
             </div>
-          )}
 
-          {activeTab === 'prescriptions' && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-[#0C4A6E]">Kê đơn thuốc</h2>
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-muted-foreground text-center py-8">
-                    Chức năng đang phát triển
-                  </p>
-                </CardContent>
-              </Card>
+            {/* Thứ trong tuần */}
+            <div className="grid grid-cols-7 gap-1 text-center mb-2">
+               {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(d => (
+                   <div key={d} className="text-xs font-semibold text-slate-400 py-1">{d}</div>
+               ))}
             </div>
-          )}
 
-          {activeTab === 'tests' && (
-            <div className="space-y-6 animate-fade-in">
-              <h2 className="text-[#0C4A6E]">Quản lý xét nghiệm</h2>
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-muted-foreground text-center py-8">
-                    Chức năng đang phát triển
-                  </p>
-                </CardContent>
-              </Card>
+            {/* Grid ngày */}
+            <div className="grid grid-cols-7 gap-2">
+              {generateCalendarDays(currentYear, currentMonth).map((day, index) => {
+                if (!day) return <div key={`empty-${index}`} />;
+                
+                const dateStr = formatDateToString(day);
+                const isSelected = dateStr === selectedDateStr;
+                const isToday = dateStr === todayStr;
+                // Kiểm tra xem ngày này có lịch hẹn nào không
+                const hasAppt = getAppointmentCountForDate(day) > 0;
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedDate(day)}
+                    className={`
+                        aspect-square rounded-xl flex flex-col items-center justify-center text-sm relative transition-all duration-200
+                        ${isSelected ? 'bg-sky-600 text-white shadow-md scale-105 z-10' : 'hover:bg-slate-50 text-slate-700'}
+                        ${isToday && !isSelected ? 'border-2 border-sky-600 font-bold text-sky-600' : ''}
+                        ${hasAppt && !isSelected ? 'bg-sky-50 font-medium text-sky-900' : ''}
+                    `}
+                  >
+                    {day.getDate()}
+                    {hasAppt && (
+                        <div className={`w-1.5 h-1.5 rounded-full mt-1 ${isSelected ? 'bg-white' : 'bg-sky-500'}`} />
+                    )}
+                  </button>
+                );
+              })}
             </div>
-          )}
-        </main>
+          </div>
+        </div>
+
       </div>
     </div>
   );
