@@ -28,27 +28,29 @@ export function Navbar({ currentPage, setCurrentPage }) {
     { id: "news", label: "Tin tức" },
   ];
 
-  const userMenuItems = user
-    ? [{ id: "profile", label: "Hồ sơ cá nhân" }]
-    : [];
 
   const adminMenuItems =
     user?.role === "admin"
       ? [{ id: "admin-dashboard", label: "Dashboard" }]
       : [];
+  
+  const patientMenuItems =
+    user?.role === "patient"
+      ? [{ id: "patient-dashboard", label: "Dashboard" }]
+      : [];
 
   const doctorMenuItems = user?.role === 'doctor' ? [
-    { id: 'doctor-dashboard', label: 'Dashboard Bác sĩ' },
+    { id: "profile", label: "Hồ sơ cá nhân" }, { id: 'doctor-dashboard', label: 'Dashboard' },
   ] : [];
 
   const nurseMenuItems = user?.role === 'nurse' ? [
-    { id: 'nurse-dashboard', label: 'Dashboard Y tá' },
+    { id: 'nurse-dashboard', label: 'Dashboard' },
   ] : [];
 
   const visibleMenuItems = [
     ...publicMenuItems,
-    ...userMenuItems,
     ...adminMenuItems,
+    ...patientMenuItems,
     ...doctorMenuItems,
     ...nurseMenuItems,
   ];

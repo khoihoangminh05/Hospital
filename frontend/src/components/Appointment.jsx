@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// Import instance axios bạn đã cấu hình
 
-// Import UI Components (Giữ nguyên từ code cũ)
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
@@ -53,19 +51,18 @@ export function Appointment({ setCurrentPage }) {
     fetchDepartments();
   }, []);
 
-  // --- 2. XỬ LÝ KHI CHỌN KHOA -> LOAD BÁC SĨ ---
+ 
   const handleDepartmentChange = async (deptId) => {
-    // Reset bác sĩ cũ
     setFormData(prev => ({ 
         ...prev, 
         department: deptId, 
         doctor: '', 
         doctorName: '' 
     }));
-    //setDoctors([]); // Xóa list bác sĩ cũ
+   
 
     try {
-        // Gọi API: GET /api/meta/doctors/<department_id>
+       
         const response = await api.get(`/api/meta/doctors/${deptId}`);
        
         setDoctors(response.data); 
@@ -76,13 +73,11 @@ export function Appointment({ setCurrentPage }) {
   };
 
   const handleDoctorChange = (docId) => {
-    // Tìm object bác sĩ để lấy tên hiển thị
     const selectedDoc = doctors.find(d => d._id === docId);
     setFormData(prev => ({ 
         ...prev, 
         doctor: docId, 
-        // Backend trả về user, ưu tiên lấy fullName, nếu không có lấy username
-        doctorName: selectedDoc ? (selectedDoc.fullName || selectedDoc.username) : '' 
+        doctorName: selectedDoc ? (selectedDoc.name || selectedDoc.username) : '' 
     }));
     
     // Xóa lỗi nếu có
@@ -120,8 +115,6 @@ export function Appointment({ setCurrentPage }) {
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
     '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
   ];
-
-  // --- 3. GỬI FORM ĐẶT LỊCH ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiError(null);
@@ -138,23 +131,21 @@ export function Appointment({ setCurrentPage }) {
             return;
         }
 
-        // Chuẩn bị payload đúng format backend cần
+       
         const payload = {
             doctor_id: formData.doctor,
-            date_time: `${formData.date}T${formData.time}:00`, // ISO Format
+            date_time: `${formData.date}T${formData.time}:00`, 
             description: formData.notes
         };
 
-        // Gọi API: POST /api/appointments/book
         const res = await api.post('/api/appointments/book', payload);
         console.log(res);
-        // Nếu axios không throw error nghĩa là thành công (status 2xx)
+     
         setIsSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (err) {
         console.error("Submit Error:", err);
-        // Lấy message lỗi từ backend trả về (nếu có)
         const message = err.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại.";
         setApiError(message);
     } finally {
@@ -202,7 +193,7 @@ export function Appointment({ setCurrentPage }) {
               </Card>
               <div className="flex gap-4 justify-center">
                 <Button onClick={() => handleNavigation('home')} className="bg-white text-blue-700 hover:bg-gray-100">Về trang chủ</Button>
-                <Button variant="outline" onClick={handleReset} className="border-white text-white hover:bg-white/20">Đặt lịch mới</Button>
+                <Button variant="outline" onClick={handleReset} className=" text-black bg-white/20">Đặt lịch mới</Button>
               </div>
           </div>
         </section>

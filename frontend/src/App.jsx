@@ -17,6 +17,7 @@ import { About } from "./components/About";
 import { News } from "./components/News";
 import {  DoctorProfile } from "./components/DoctorProfile";
 import { DoctorDashboard } from "./components/DoctorDashboard";
+import { PatientDashboard } from "./components/PatientDashboard";
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -70,6 +71,8 @@ function AppContent() {
         return user?.role === 'admin' ? <AdminDashboard setCurrentPage={setCurrentPage} /> : <Hero setCurrentPage={setCurrentPage} />;
       case 'doctor-dashboard':
         return user?.role === 'doctor' ? <DoctorDashboard setCurrentPage={setCurrentPage} /> : <Hero setCurrentPage={setCurrentPage} />;
+      case 'patient-dashboard':
+        return user?.role === 'patient' ? <PatientDashboard setCurrentPage={setCurrentPage} /> : <Hero setCurrentPage={setCurrentPage} />;
       default:
         return <Hero setCurrentPage={setCurrentPage} />;
     }
