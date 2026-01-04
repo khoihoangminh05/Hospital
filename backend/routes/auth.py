@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from services.auth_service import register_user, login_user, init_registration, verify_registration
+import socket
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -57,3 +58,29 @@ def register_verify():
     if not success:
         return jsonify({"message": message}), 400
     return jsonify({"message": message}), 201
+
+@auth_bp.route('/debug-connection', methods=['GET'])
+def debug_connection():
+    host = 'smtp.gmail.com'
+    ports = [587, 465, 25, 2525] # Các cổng thường dùng cho mail
+    results = {}
+
+    for port in ports:
+        try:
+            # Thử kết nối TCP trong 3 giây
+            s = socket.create_connection((host, port), timeout=3)
+            s.close()
+            results[str(port)] = "✅ CONNECTED (Thông mạng)"
+        except socket.timeout:
+            results[str(port)] = "❌ TIMEOUT (Mạng chậm hoặc bị chặn)"
+        except ConnectionRefusedError:
+            results[str(port)] = "❌ REFUSED (Server từ chối)"
+        except OSError as e:
+            results[str(port)] = f"❌ UNREACHABLE (Lỗi mạng: {str(e)})"
+        except Exception as e:
+            results[str(port)] = f"❌ ERROR: {str(e)}"
+
+    return jsonify({
+        "server": host,
+        "results": results
+    })
