@@ -6,6 +6,7 @@ from flask import current_app
 from models.user_model import UserModel
 import random
 import string
+from threading import Thread
 
 VALID_ROLES = ["patient", "doctor", "nurse", "admin"]
 
@@ -74,23 +75,24 @@ def login_user(data):
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
 
-# Bước 1: Khởi tạo đăng ký - Lưu tạm & Gửi OTP
+def send_async_email(app, msg):
+    with app.app_context():
+        try:
+            mail.send(msg)
+            print("✅ Email OTP đã gửi thành công!")
+        except Exception as e:
+            print(f"❌ Lỗi gửi email: {e}")
+
 def init_registration(data):
     email = data['email']
     
-    # Check email đã tồn tại trong bảng Users chính chưa
+    # Check email tồn tại
     if mongo.db.users.find_one({'email': email}):
         return False, "Email này đã được sử dụng."
 
-    # Tạo OTP
     otp_code = generate_otp()
-
-    
-    
-    # Hash password trước khi lưu tạm
     hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
 
-    # Dữ liệu lưu tạm (có thời hạn)
     pending_user = {
         "name": data['name'],
         "email": email,
@@ -100,31 +102,35 @@ def init_registration(data):
         "doctorCode": data.get('doctorCode'),
         "nurseCode": data.get('nurseCode'),
         "otp": otp_code,
-        "otp_exp": datetime.utcnow() + timedelta(minutes=10) # Hết hạn sau 10p
+        "otp_exp": datetime.utcnow() + timedelta(minutes=10)
     }
 
-    # Lưu vào collection pending_users (dùng update_one với upsert để ghi đè nếu đăng ký lại)
     mongo.db.pending_users.update_one(
         {"email": email}, 
         {"$set": pending_user}, 
         upsert=True
     )
-    
 
-    # Gửi Email
+    # --- ĐOẠN GỬI MAIL (ĐÃ SỬA DÙNG THREAD) ---
     try:
-        msg = Message("Mã xác thực đăng ký - Bệnh viện Tự Nhiên",
-                      recipients=[email])
+        msg = Message("Mã xác thực đăng ký", recipients=[email])
         msg.body = f"Mã OTP của bạn là: {otp_code}. Mã có hiệu lực trong 10 phút."
-        print(mail)
-        mail.send(msg)
         
-        return True, "Mã xác thực đã được gửi đến email của bạn."
+        # Lấy app context thật để truyền vào thread
+        app = current_app._get_current_object()
+        
+        # Tạo luồng chạy song song
+        thr = Thread(target=send_async_email, args=(app, msg))
+        thr.start()
+        
+        # Return ngay lập tức, KHÔNG chờ mail gửi xong
+        return True, "Đang gửi mã xác thực, vui lòng kiểm tra email sau vài giây."
+        
     except Exception as e:
-        print(e)
-        return False, "Lỗi gửi email. Vui lòng kiểm tra lại địa chỉ email."
-
-# Bước 2: Xác thực OTP & Tạo User thật
+        print(f"Lỗi tạo thread gửi mail: {e}")
+        # Vẫn trả về True vì data đã lưu rồi
+        return True, "Đã lưu thông tin. Hệ thống đang xử lý email..."
+    
 def verify_registration(email, otp):
     pending_user = mongo.db.pending_users.find_one({"email": email})
 
