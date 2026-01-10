@@ -52,39 +52,43 @@ def get_appointments_by_role(user):
     elif role == 'admin':
         query = {}
 
-    # 2. Lấy danh sách lịch từ DB (Sắp xếp theo thời gian)
-    # Lưu ý: Model Appointment của bạn lưu 'created_at', nhưng sort theo 'date_time' sẽ hợp lý hơn cho lịch
+    # 2. Lấy danh sách lịch
     appointments = list(mongo.db.appointments.find(query).sort("date_time", 1))
     
     results = []
     for appt in appointments:
-        # 3. Lấy thông tin Bệnh nhân (để hiển thị tên)
-        # Lưu ý: Model lưu patient_id, cần query bảng users để lấy name
+        # --- A. LẤY THÔNG TIN BỆNH NHÂN (Logic cũ) ---
         patient_id = appt.get('patient_id')
         patient_name = "Khách vãng lai"
         patient_initials = "NA"
 
         if patient_id:
-            patient = mongo.db.users.find_one({"_id": patient_id}) # patient_id trong model đã là ObjectId
+            patient = mongo.db.users.find_one({"_id": patient_id})
             if patient:
                 patient_name = patient.get('name', 'Không tên')
-                # Tạo chữ cái đầu tên (VD: Nguyen Van A -> NA)
                 if patient_name:
                     words = patient_name.split()
                     if len(words) > 0:
                         patient_initials = "".join([w[0] for w in words]).upper()[:2]
 
-        # 4. Xử lý ngày giờ (date_time)
-        # Model lưu datetime object, ta tách ra string để Frontend dễ dùng
+        # --- B. LẤY THÔNG TIN BÁC SĨ (Mới thêm) ---
+        doctor_id = appt.get('doctor_id')
+        doctor_name = "Chưa phân công"
+        
+        if doctor_id:
+            doctor = mongo.db.users.find_one({"_id": doctor_id})
+            if doctor:
+                doctor_name = doctor.get('name', 'Bác sĩ')
+
+        # --- C. XỬ LÝ NGÀY GIỜ ---
         dt_obj = appt.get('date_time')
         date_str = ""
         time_str = ""
         
         if isinstance(dt_obj, datetime):
-            date_str = dt_obj.strftime('%Y-%m-%d') # Trả về: 2025-12-30
-            time_str = dt_obj.strftime('%H:%M')    # Trả về: 09:30
+            date_str = dt_obj.strftime('%Y-%m-%d')
+            time_str = dt_obj.strftime('%H:%M')
         elif isinstance(dt_obj, str):
-            # Fallback nếu lỡ lưu string
             try:
                 dt_obj = datetime.fromisoformat(dt_obj)
                 date_str = dt_obj.strftime('%Y-%m-%d')
@@ -92,14 +96,22 @@ def get_appointments_by_role(user):
             except:
                 pass
 
-        # 5. Cấu trúc JSON trả về cho Frontend
+        # --- D. TRẢ VỀ KẾT QUẢ ---
         results.append({
             "id": str(appt['_id']),
+            
+            # Thông tin bệnh nhân
             "patientName": patient_name,
             "patientInitials": patient_initials,
+            
+            # Thông tin bác sĩ (Thêm vào đây để nút Chat hoạt động)
+            "doctorId": str(doctor_id) if doctor_id else None,
+            "doctorName": doctor_name,
+
+            # Thông tin lịch hẹn
             "date": date_str,
             "time": time_str,
-            "reason": appt.get('symptom_desc', ''), # Map 'symptom_desc' của Model thành 'reason' cho Frontend
+            "reason": appt.get('symptom_desc', ''),
             "status": appt.get('status', 'pending')
         })
         

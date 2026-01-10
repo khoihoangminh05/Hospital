@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    dns: 
+      - 8.8.8.8
+      - 1.1.1.1
+    container_name: hospital_backend
+    ports:
+      - "5000:5000"
+    environment:
+
+      - MONGO_URI=mongodb+srv://doanduonghung2005lhp_db_user:Huyduong05@cluster0.u2b6xzt.mongodb.net/hospital_db?retryWrites=true&w=majority
+      - JWT_SECRET=jwt-secret-key
+      - MAIL_USER=duonghuy121205@gmail.com
+      - MAIL_PASS=hixv eezy eeaw wtiz
+    restart: always
+  frontend:
+    build: ./frontend
+    container_name: hospital_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always

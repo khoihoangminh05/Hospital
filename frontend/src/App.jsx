@@ -18,6 +18,9 @@ import { News } from "./components/News";
 import {  DoctorProfile } from "./components/DoctorProfile";
 import { DoctorDashboard } from "./components/DoctorDashboard";
 import { PatientDashboard } from "./components/PatientDashboard";
+import { ChatWidget } from "./components/ChatWidget";
+import {  ProfessionalChat } from "./components/ProfessionalChat";
+import { ChatProvider } from "./contexts/ChatContext";
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -66,6 +69,8 @@ function AppContent() {
         return <News setCurrentPage={setCurrentPage} />;
       case 'profile':
         return <DoctorProfile setCurrentPage={setCurrentPage} />;
+      case 'support':
+        return <ProfessionalChat setCurrentPage={setCurrentPage} />;
 
       case 'admin-dashboard':
         return user?.role === 'admin' ? <AdminDashboard setCurrentPage={setCurrentPage} /> : <Hero setCurrentPage={setCurrentPage} />;
@@ -77,6 +82,7 @@ function AppContent() {
         return <Hero setCurrentPage={setCurrentPage} />;
     }
   };
+  console.log(user);
 
   return (
     <div >
@@ -84,9 +90,10 @@ function AppContent() {
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
       />
-
+      <ChatProvider>
       <main>{renderPage()}</main>
-
+      {user?.role == "patient" && <ChatWidget />}
+      </ChatProvider>
       <Footer setCurrentPage={setCurrentPage} />
       <ScrollToTop />
       <Toaster position="top-right" />

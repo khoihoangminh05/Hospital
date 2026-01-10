@@ -167,3 +167,4 @@ def verify_registration(email, otp):
     mongo.db.pending_users.delete_one({"email": email})
 
     return True, "Đăng ký thành công!"
+

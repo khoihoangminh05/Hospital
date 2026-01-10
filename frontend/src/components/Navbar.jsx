@@ -31,7 +31,7 @@ export function Navbar({ currentPage, setCurrentPage }) {
 
   const adminMenuItems =
     user?.role === "admin"
-      ? [{ id: "admin-dashboard", label: "Dashboard" }]
+      ? [{ id: "admin-dashboard", label: "Dashboard" }, { id: "support", label: "Support" }]
       : [];
   
   const patientMenuItems =
@@ -40,7 +40,7 @@ export function Navbar({ currentPage, setCurrentPage }) {
       : [];
 
   const doctorMenuItems = user?.role === 'doctor' ? [
-    { id: "profile", label: "Hồ sơ cá nhân" }, { id: 'doctor-dashboard', label: 'Dashboard' },
+    { id: "profile", label: "Hồ sơ cá nhân" }, { id: 'doctor-dashboard', label: 'Dashboard' }, { id: "support", label: "Support" }
   ] : [];
 
   const nurseMenuItems = user?.role === 'nurse' ? [

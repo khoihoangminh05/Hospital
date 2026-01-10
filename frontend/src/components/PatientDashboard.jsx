@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Clock, CheckCircle2, AlertCircle, Plus, 
-  User, MapPin, Activity, ChevronRight, Loader2 
+  User, MapPin, Activity, ChevronRight, Loader2, 
+  MessageSquare
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import api from '@/config/axios';
+import { toast } from 'sonner';
+import { useChat } from '@/contexts/ChatContext';
 
 export function PatientDashboard({ setCurrentPage }) {
+  const { openChatWithDoctor } = useChat();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({ name: 'Bạn' });
@@ -36,6 +40,20 @@ export function PatientDashboard({ setCurrentPage }) {
 
     fetchAppointments();
   }, []);
+
+  const handleContactDoctor = (appointment) => {
+    console.log(appointment)
+    // Logic mở chat:
+    // Cách 1: Nếu bạn dùng ChatWidget toàn cục, bạn có thể emit event hoặc set state global
+    openChatWithDoctor({
+        doctorId: appointment.doctorId, // ID lấy từ API get_appointments
+        doctorName: appointment.doctorName
+    });
+    
+    // Ví dụ: Hiển thị thông báo tạm thời
+    toast.info(`Đang kết nối với ${appointment.doctorName}...`);
+    
+  };
 
   // --- 2. TÍNH TOÁN THỐNG KÊ ---
   const pendingCount = appointments.filter(a => a.status === 'pending').length;
@@ -161,14 +179,7 @@ export function PatientDashboard({ setCurrentPage }) {
             {/* LEFT: Appointment List */}
             <div className="lg:col-span-2 space-y-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                        <h2 className="font-bold text-gray-800 text-lg flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-blue-600" /> Danh sách lịch khám
-                        </h2>
-                        <Button variant="ghost" className="text-sm text-blue-600 hover:text-blue-700" onClick={() => handleNavigate('appointment')}>
-                            Đặt thêm
-                        </Button>
-                    </div>
+                    {/* ... (Giữ nguyên Header "Danh sách lịch khám") ... */}
                     
                     <div className="p-4 md:p-6 space-y-4">
                         {appointments.length === 0 ? (
@@ -190,7 +201,7 @@ export function PatientDashboard({ setCurrentPage }) {
                                         </div>
 
                                         {/* Info */}
-                                        <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0 w-full">
                                             <div className="flex flex-wrap justify-between items-start gap-2 mb-1">
                                                 <h3 className="font-bold text-gray-900 text-lg">{appt.doctorName}</h3>
                                                 <Badge className={`${statusConfig.color} px-2.5 py-0.5 rounded-full font-medium border`}>
@@ -200,7 +211,7 @@ export function PatientDashboard({ setCurrentPage }) {
                                             
                                             <p className="text-gray-600 text-sm mb-2">{appt.department}</p>
                                             
-                                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-3">
                                                 <div className="flex items-center gap-1.5">
                                                     <Clock className="w-4 h-4" /> {appt.time}
                                                 </div>
@@ -209,6 +220,19 @@ export function PatientDashboard({ setCurrentPage }) {
                                                 </div>
                                             </div>
                                             
+                                            {/* NÚT LIÊN HỆ (CHỈ HIỆN KHI ĐÃ CONFIRMED) */}
+                                            {appt.status === 'confirmed' && (
+                                                <Button 
+                                                    onClick={() => handleContactDoctor(appt)}
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    className="w-full md:w-auto text-blue-600 border-blue-200 hover:bg-blue-50 mt-2"
+                                                >
+                                                    <MessageSquare className="w-4 h-4 mr-2" /> 
+                                                    Nhắn tin với bác sĩ
+                                                </Button>
+                                            )}
+
                                             {appt.reason && (
                                                 <div className="mt-3 text-sm bg-gray-50 p-2 rounded text-gray-600 italic border border-gray-100">
                                                     "Lý do: {appt.reason}"
