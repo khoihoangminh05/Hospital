@@ -46,7 +46,7 @@ export function Doctors({ setCurrentPage }) {
       specialtyIcon: Heart,
       department: 'Khoa Tim Mạch',
       shortBio: 'Chuyên khám và điều trị các bệnh tim mạch phức tạp',
-      fullBio: 'Bác sĩ Nguyễn Văn An có hơn 15 năm kinh nghiệm trong lĩnh vực tim mạch. Từng công tác tại các bệnh viện lớn trong nước và có nhiều công trình nghiên cứu về bệnh lý tim mạch. Chuyên môn sâu về can thiệp tim mạch và điều trị suy tim.',
+      fullBio: 'Bác sĩ Hoàng Minh Khôi có hơn 15 năm kinh nghiệm trong lĩnh vực tim mạch. Từng công tác tại các bệnh viện lớn trong nước và có nhiều công trình nghiên cứu về bệnh lý tim mạch. Chuyên môn sâu về can thiệp tim mạch và điều trị suy tim.',
       experience: '15 năm kinh nghiệm',
       education: [
         'Bác sĩ Đa khoa - Đại học Y Hà Nội',
@@ -73,7 +73,7 @@ export function Doctors({ setCurrentPage }) {
       specialtyIcon: Stethoscope,
       department: 'Khoa Nội Tổng Quát',
       shortBio: 'Chăm sóc sức khỏe toàn diện cho người lớn',
-      fullBio: 'Bác sĩ Trần Thị Bình là chuyên gia về nội tổng quát với 12 năm kinh nghiệm điều trị các bệnh lý nội khoa phổ biến. Tận tâm với người bệnh và luôn cập nhật các phương pháp điều trị mới nhất.',
+      fullBio: 'Bác sĩ Đoàn Dương Hưng là chuyên gia về nội tổng quát với 12 năm kinh nghiệm điều trị các bệnh lý nội khoa phổ biến. Tận tâm với người bệnh và luôn cập nhật các phương pháp điều trị mới nhất.',
       experience: '12 năm kinh nghiệm',
       education: [
         'Bác sĩ Đa khoa - Đại học Y Dược TP.HCM',
@@ -100,7 +100,7 @@ export function Doctors({ setCurrentPage }) {
       specialtyIcon: Activity,
       department: 'Khoa Ngoại',
       shortBio: 'Thực hiện phẫu thuật chính xác và an toàn',
-      fullBio: 'Bác sĩ Lê Văn Cường là một trong những phẫu thuật viên hàng đầu với 18 năm kinh nghiệm. Chuyên sâu về phẫu thuật nội soi và phẫu thuật ổ bụng, với tỷ lệ thành công cao.',
+      fullBio: 'Bác sĩ Dương Quang Huy là một trong những phẫu thuật viên hàng đầu với 18 năm kinh nghiệm. Chuyên sâu về phẫu thuật nội soi và phẫu thuật ổ bụng, với tỷ lệ thành công cao.',
       experience: '18 năm kinh nghiệm',
       education: [
         'Bác sĩ Đa khoa - Đại học Y Hà Nội',
@@ -127,7 +127,7 @@ export function Doctors({ setCurrentPage }) {
       specialtyIcon: Baby,
       department: 'Khoa Nhi',
       shortBio: 'Chăm sóc sức khỏe trẻ em từ sơ sinh đến thiếu niên',
-      fullBio: 'Bác sĩ Phạm Thị Dung có 14 năm kinh nghiệm chăm sóc sức khỏe trẻ em. Tận tâm, kiên nhẫn và luôn tạo cảm giác an tâm cho cả trẻ em và phụ huynh.',
+      fullBio: 'Bác sĩ Lê Tiến Mạnh có 14 năm kinh nghiệm chăm sóc sức khỏe trẻ em. Tận tâm, kiên nhẫn và luôn tạo cảm giác an tâm cho cả trẻ em và phụ huynh.',
       experience: '14 năm kinh nghiệm',
       education: [
         'Bác sĩ Đa khoa - Đại học Y Hà Nội',
@@ -154,7 +154,7 @@ export function Doctors({ setCurrentPage }) {
       specialtyIcon: Brain,
       department: 'Khoa Thần Kinh',
       shortBio: 'Chuyên gia điều trị các bệnh lý thần kinh phức tạp',
-      fullBio: 'Bác sĩ Hoàng Minh Tuấn là chuyên gia hàng đầu về thần kinh học với 16 năm kinh nghiệm. Chuyên sâu về điều trị đột quỵ, động kinh và các bệnh lý thần kinh thoái hóa.',
+      fullBio: 'Bác sĩ Trần Đăng Tài là chuyên gia hàng đầu về thần kinh học với 16 năm kinh nghiệm. Chuyên sâu về điều trị đột quỵ, động kinh và các bệnh lý thần kinh thoái hóa.',
       experience: '16 năm kinh nghiệm',
       education: [
         'Bác sĩ Đa khoa - Đại học Y Dược TP.HCM',
@@ -181,7 +181,7 @@ export function Doctors({ setCurrentPage }) {
       specialtyIcon: Heart,
       department: 'Khoa Sản Phụ Khoa',
       shortBio: 'Chăm sóc sức khỏe phụ nữ và thai sản toàn diện',
-      fullBio: 'Bác sĩ Võ Thị Mai có 13 năm kinh nghiệm trong lĩnh vực sản phụ khoa. Tận tâm với từng sản phụ và luôn đặt sự an toàn của mẹ và bé lên hàng đầu.',
+      fullBio: 'Bác sĩ Nguyễn Mai Hương có 13 năm kinh nghiệm trong lĩnh vực sản phụ khoa. Tận tâm với từng sản phụ và luôn đặt sự an toàn của mẹ và bé lên hàng đầu.',
       experience: '13 năm kinh nghiệm',
       education: [
         'Bác sĩ Đa khoa - Đại học Y Dược TP.HCM',
@@ -208,7 +208,7 @@ export function Doctors({ setCurrentPage }) {
       specialtyIcon: Bone,
       department: 'Khoa Xương Khớp',
       shortBio: 'Điều trị và phẫu thuật các bệnh lý xương khớp',
-      fullBio: 'Bác sĩ Nguyễn Thanh Long là chuyên gia xương khớp với 14 năm kinh nghiệm. Thành thạo trong phẫu thuật thay khớp và điều trị chấn thương thể thao.',
+      fullBio: 'Bác sĩ Nguyễn Việt Phúc là chuyên gia xương khớp với 14 năm kinh nghiệm. Thành thạo trong phẫu thuật thay khớp và điều trị chấn thương thể thao.',
       experience: '14 năm kinh nghiệm',
       education: [
         'Bác sĩ Đa khoa - Đại học Y Hà Nội',
@@ -229,13 +229,13 @@ export function Doctors({ setCurrentPage }) {
       bgColor: 'bg-amber-50'
     },
     {
-      id: 'tran-kim-anh',
-      name: 'BS. Trần Kim Anh',
+      id: 'ly-tran-kien',
+      name: 'BS. Lý Trần Kiên',
       specialty: 'Bác sĩ Mắt',
       specialtyIcon: Eye,
       department: 'Khoa Mắt',
       shortBio: 'Chuyên khám và điều trị các bệnh lý về mắt',
-      fullBio: 'Bác sĩ Trần Kim Anh có 11 năm kinh nghiệm trong lĩnh vực nhãn khoa. Thành thạo các kỹ thuật phẫu thuật mắt hiện đại và điều trị các bệnh lý võng mạc.',
+      fullBio: 'Bác sĩ Lý Trần Kiên có 11 năm kinh nghiệm trong lĩnh vực nhãn khoa. Thành thạo các kỹ thuật phẫu thuật mắt hiện đại và điều trị các bệnh lý võng mạc.',
       experience: '11 năm kinh nghiệm',
       education: [
         'Bác sĩ Đa khoa - Đại học Y Hà Nội',
@@ -248,7 +248,7 @@ export function Doctors({ setCurrentPage }) {
         'Giải thưởng bác sĩ trẻ xuất sắc 2020'
       ],
       languages: ['Tiếng Việt', 'English'],
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
+      image: './doctor8.jpg',
       rating: 4.8,
       consultations: 2800,
       availability: 'Thứ 2, 4, 6',

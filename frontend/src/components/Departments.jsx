@@ -193,7 +193,7 @@ export function Departments({ setCurrentPage }) {
         'Khám mắt cho trẻ em'
       ],
       doctors: 8,
-      image: 'https://images.unsplash.com/photo-1598275486452-e7f49efbccef?w=600',
+      image: 'https://plus.unsplash.com/premium_photo-1677333508720-c37038cbf8be?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       color: 'text-teal-500',
       bgColor: 'bg-teal-50',
       availability: 'Thứ 2 - Thứ 7'
