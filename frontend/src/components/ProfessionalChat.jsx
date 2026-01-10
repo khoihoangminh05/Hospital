@@ -49,7 +49,7 @@ export function ProfessionalChat() {
     };
     fetchConversations();
 
-    socketRef.current = io('http://localhost:5000', {
+    socketRef.current = io('https://hospital-3v8p.onrender.com', {
       query: { token: token },
       transports: ['websocket']
     });

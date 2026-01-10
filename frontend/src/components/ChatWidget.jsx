@@ -61,7 +61,7 @@ export function ChatWidget() {
 
       // B. Kết nối Socket (Nếu chưa có)
       if (!socketRef.current) {
-        socketRef.current = io('http://localhost:5000', { query: { token } });
+        socketRef.current = io('https://hospital-3v8p.onrender.com', { query: { token } });
         
         socketRef.current.on('receive_message', (msg) => {
             // Logic Realtime: Chỉ hiện tin nhắn nếu nó thuộc về người đang chat cùng
