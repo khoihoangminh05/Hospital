@@ -6,6 +6,10 @@ from models.user_model import UserModel
 import random
 import string
 from services.email_service import send_otp_email
+import resend
+import os
+
+resend.api_key = os.environ.get("RESEND_API_KEY")
 
 VALID_ROLES = ["patient", "doctor", "nurse", "admin"]
 
@@ -141,3 +145,83 @@ def verify_registration(email, otp):
     mongo.db.pending_users.delete_one({"email": email})
 
     return True, "Đăng ký thành công!"
+
+def send_reset_email(to_email, otp_code):
+    try:
+        html_content = f"""
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2>Yêu cầu đặt lại mật khẩu</h2>
+                <p>Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản Bệnh viện Tự Nhiên.</p>
+                <p>Mã xác thực (OTP) của bạn là:</p>
+                <h1 style="color: #1A73E8; letter-spacing: 5px;">{otp_code}</h1>
+                <p>Mã này có hiệu lực trong <b>10 phút</b>.</p>
+                <p>Nếu không phải bạn yêu cầu, vui lòng bỏ qua email này.</p>
+            </div>
+        """
+
+        resend.Emails.send({
+            "from": "onboarding@resend.dev", # Lưu ý: Nếu chưa add domain riêng thì chỉ gửi được về email chính chủ
+            "to": to_email,
+            "subject": "Đặt lại mật khẩu - Bệnh viện Tự Nhiên",
+            "html": html_content
+        })
+        print(f"✅ Đã gửi mail reset tới {to_email}")
+        return True
+    except Exception as e:
+        print(f"❌ Lỗi gửi mail Resend: {e}")
+        return False
+
+# --- 2. LOGIC YÊU CẦU QUÊN MẬT KHẨU ---
+def request_password_reset(email):
+    # Tìm user
+    user = mongo.db.users.find_one({"email": email})
+    if not user:
+        return False, "Email không tồn tại trong hệ thống."
+
+    # Tạo OTP
+    otp_code = ''.join(random.choices(string.digits, k=6))
+    
+    # Lưu OTP vào chính bản ghi user (hoặc bảng riêng password_resets)
+    # Kèm thời gian hết hạn (10 phút)
+    mongo.db.users.update_one(
+        {"email": email},
+        {"$set": {
+            "reset_token": otp_code,
+            "reset_token_exp": datetime.utcnow() + timedelta(minutes=10)
+        }}
+    )
+
+    # Gửi mail (Chạy thẳng hoặc cho vào Thread nếu muốn nhanh hơn)
+    send_reset_email(email, otp_code)
+    
+    return True, "Mã xác thực đã được gửi tới email của bạn."
+
+# --- 3. LOGIC ĐẶT LẠI MẬT KHẨU MỚI ---
+def reset_password(email, otp, new_password):
+    user = mongo.db.users.find_one({"email": email})
+    
+    if not user:
+        return False, "Email không đúng."
+    
+    # Kiểm tra OTP có khớp không
+    if user.get('reset_token') != otp:
+        return False, "Mã OTP không chính xác."
+    
+    # Kiểm tra hết hạn
+    if user.get('reset_token_exp') < datetime.utcnow():
+        return False, "Mã OTP đã hết hạn. Vui lòng yêu cầu lại."
+
+    # Hash mật khẩu mới
+    hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
+    # Cập nhật mật khẩu và xóa token cũ
+    mongo.db.users.update_one(
+        {"email": email},
+        {"$set": {
+            "password": hashed_password,
+            "reset_token": None,
+            "reset_token_exp": None
+        }}
+    )
+
+    return True, "Đặt lại mật khẩu thành công. Hãy đăng nhập ngay."

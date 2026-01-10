@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.auth_service import register_user, login_user, init_registration, verify_registration
+from services.auth_service import register_user, login_user, init_registration, verify_registration, request_password_reset, reset_password
 import socket
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
@@ -84,3 +84,34 @@ def debug_connection():
         "server": host,
         "results": results
     })
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password_route():
+    data = request.get_json()
+    email = data.get('email')
+    
+    if not email:
+        return jsonify({'message': 'Vui lòng nhập email'}), 400
+
+    success, message = request_password_reset(email)
+    
+    if success:
+        return jsonify({'message': message}), 200
+    return jsonify({'message': message}), 400
+
+# 2. API Đổi mật khẩu (Nhập Email + OTP + Pass Mới)
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password_route():
+    data = request.get_json()
+    email = data.get('email')
+    otp = data.get('otp')
+    new_password = data.get('newPassword')
+
+    if not all([email, otp, new_password]):
+        return jsonify({'message': 'Vui lòng điền đầy đủ thông tin'}), 400
+
+    success, message = reset_password(email, otp, new_password)
+
+    if success:
+        return jsonify({'message': message}), 200
+    return jsonify({'message': message}), 400
