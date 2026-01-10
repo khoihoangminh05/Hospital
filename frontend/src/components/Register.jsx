@@ -42,8 +42,18 @@ export function Register({ setCurrentPage }) {
     if (!formData.password) return "Vui lòng nhập mật khẩu";
     if (formData.password.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
     if (formData.password !== formData.confirmPassword) return "Mật khẩu xác nhận không khớp";
-    if (selectedRole === "doctor" && !formData.doctorCode.trim()) return "Vui lòng nhập mã bác sĩ";
-    if (selectedRole === "nurse" && !formData.nurseCode.trim()) return "Vui lòng nhập mã y tá";
+    if (selectedRole === "doctor") {
+    if (!formData.doctorCode.trim()) {
+      return "Vui lòng nhập mã bác sĩ";
+    }
+    if (!/^BS\d{4}$/.test(formData.doctorCode)) {
+      return "Mã bác sĩ phải có định dạng BSxxxx (ví dụ: BS0123)";
+    }
+  }
+
+  if (selectedRole === "nurse" && !formData.nurseCode.trim()) {
+    return "Vui lòng nhập mã y tá";
+  }
     return null;
   };
 
